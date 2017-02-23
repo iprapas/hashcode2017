@@ -3,17 +3,31 @@ import math
 import random
 import itertools
 import sys
+##
+##class Video(object):
+##	def __init(self,vid,size):
+##		self.size = size
+##
+		
 
+class Server(object):
+	def __init__(self,ids,size):
+		self.size = size
+		self.sizeLeft = size	
+		self.videoList = []
 
-class Pizza(object):
-	def __init__(self,rows, cols, grid):
-		self.rows = rows
-		self.cols = cols
-		self.grid = grid
-
+	
 	def __str__(self):
-		return "Pizza"
+		return "Cache Server #" + self.ids
 
+	def addVideo(self,vid,size):
+		self.videoList.append(vid)
+		self.sizeLeft = self.sizeLeft - size
+
+class Endpoint(object):
+	def __init__(self, latency):
+		self.latency = latency;
+		self.caches = dict()
 
 def read_file(filename):
     """Read the input file."""
@@ -74,3 +88,5 @@ def main():
 
 if __name__ == '__main__':
 	main()
+
+
