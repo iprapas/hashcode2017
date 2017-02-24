@@ -3,90 +3,119 @@ import math
 import random
 import itertools
 import sys
-##
-##class Video(object):
-##	def __init(self,vid,size):
-##		self.size = size
-##
-		
 
-class Server(object):
-	def __init__(self,ids,size):
-		self.size = size
-		self.sizeLeft = size	
-		self.videoList = []
 
-	
-	def __str__(self):
-		return "Cache Server #" + self.ids
+class Cache(object):
+    def __init__(self, id, size):
+        self.id = id
+        self.size = size
+        self.size_left = size
+        self.video_list = []
 
-	def addVideo(self,vid,size):
-		self.videoList.append(vid)
-		self.sizeLeft = self.sizeLeft - size
+    def add_video(self, video_id, video_size):
+        """Returns True if adding is successful. False otherwise"""
+        after_size = self.size_left - video_size
+        if after_size >= 0 and (video_id, video_size) not in self.video_list:
+            self.size_left = after_size
+            self.video_list.append((video_id, video_size))
+            return True
+        else:
+            return False
+
+    def is_empty(self):
+        """Retuns true if cache server is empty"""
+        if self.video_list:
+            return False
+        return True
+
+    def __str__(self):
+        return ('%s ' % self.id) + ' '.join(str(id) for (id, size) in self.video_list)
+
 
 class Endpoint(object):
-	def __init__(self, latency):
-		self.latency = latency;
-		self.caches = dict()
+    def __init__(self, latency):
+        self.dc_lat = latency
+        self.caches = []
+
+    def add_cache(self, cache, latency):
+        self.caches.append((cache, latency))
+
+    def cache_video(self, video_id, video_size):
+        for cache, _ in self.caches:
+            if cache.add_video(video_id, video_size):
+                return cache.id
+        return -1
+
+
+
+
 
 def read_file(filename):
     """Read the input file."""
     with open(filename, 'r') as fin:
-    	line = fin.readline()
-    	v, e, r, c, x = [int(num) for num in line.split()]
-    	line = fin.readline()
-    	v_sizes = [int(num) for num in line.split()]
-    	end = []
-    	for i in range(e):
-    		l = []
-    		dl, cap = [int(num) for num in fin.readline().split()]
-    		l.append((-1,dl))
-    		for i in range(cap):
-    			c_id, lat = [int(num) for num in fin.readline().split()]
-    			l.append((c_id, lat))
-    		end.append(l)
-    	reqs = []
-    	for i in range(r):
-    		req, vid, endp = [int(num) for num in fin.readline().split()]
-    		reqs.append((req, vid, endp))
-    	return (v,e,r,c,x,v_sizes,end,reqs)
+        line = fin.readline()
+        v, e, r, c, x = [int(num) for num in line.split()]
+        line = fin.readline()
+        videos = [int(num) for num in line.split()]
+        endpoints = []
+        caches = []
+        for i in range(c):
+            caches.append(Cache(i, x))
+
+        for i in range(e):
+
+            l = []
+            dl, cap = [int(num) for num in fin.readline().split()]
+            endpoint = Endpoint(dl)
+            for j in range(cap):
+
+                c_id, lat = [int(num) for num in fin.readline().split()]
+                endpoint.add_cache(caches[c_id], lat)
+            endpoints.append(endpoint)
+        requests = []
+        for i in range(r):
+            video, endpoint, request_count = [int(num) for num in fin.readline().split()]
+            requests.append((video, endpoint, request_count))
+        return (v, e, r, c, x, videos, endpoints, requests, caches)
+
+        grid = []
+        for row in range(rows):
+            grid.append(f.readline)
 
 
-    	grid = []
-    	for row in range(rows):
-    		grid.append(f.readline)
-
-    pizza = Pizza(rows, cols, grid)
-    return pizza, min_ing, max_cells
 
 
-def write_file(grid, filename):
+def write_file(caches, filename):
     """Write output file."""
     with open(filename, 'w') as fout:
-        fout.write('%d\n' % len(data))
-        for d in data:
-            fout.write(' '.join([str(item) for item in d]) + '\n')
+        ilist = []
+        count = 0
+        for i, cache in enumerate(caches):
+            if not cache.is_empty():
+                ilist.append(i)
+                count += 1
+
+        fout.write(str(count)+'\n')
+        for i in ilist:
+            fout.write(str(caches[i])+'\n')
     return
 
-def cut(pizza):
-	pass
+import time
 
 def main():
-	#if len(sys.argv) < 3:
-	#	sys.exit('Syntax: %s <filename> <output>' % sys.argv[0])
+    start = time.time()
 
-    #print 'Running on file: %s' % sys.argv[1]
-    # read input file
-    (v,e,r,c,x,v_sizes,end,reqs) = read_file(sys.argv[1])
-    print v,e,r,c,x
-    print v_sizes
-    print end
-    print reqs
+    (v, e, r, c, x, videos, endpoints, requests, caches) = read_file(sys.argv[1])
 
-    # write output file
-    #write_file(cuts, sys.argv[2])
+    for video, endpoint, request_number in requests:
+        endpoints[endpoint].cache_video(video, videos[video])
+
+
+    #write output file
+    write_file(caches, sys.argv[2])
+    end = time.time()
+
+    print('Finished in {0} seconds'.format(end - start))
 
 if __name__ == '__main__':
-	main()
-
-
+    main()
