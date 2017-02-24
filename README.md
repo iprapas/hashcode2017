@@ -1,2 +1,2 @@
 # hashcode2017
-Google Hashcode
+Naive greedy solution to Google Hashcode 2017 qualification round
