@@ -78,9 +78,6 @@ def read_file(filename):
             requests.append((video, endpoint, request_count))
         return (v, e, r, c, x, videos, endpoints, requests, caches)
 
-        grid = []
-        for row in range(rows):
-            grid.append(f.readline)
 
 
 
@@ -106,7 +103,7 @@ def main():
     start = time.time()
 
     (v, e, r, c, x, videos, endpoints, requests, caches) = read_file(sys.argv[1])
-
+    random.shuffle(requests)
     for video, endpoint, request_number in requests:
         endpoints[endpoint].cache_video(video, videos[video])
 
